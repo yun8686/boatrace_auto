@@ -10,11 +10,29 @@ export async function getNextRaces(page: Page) {
   });
   for (let i = 0; i < raceLength; i++) {
     await goHome(page);
-    if (await page.$(".header-nav-btn.home")) {
-      await waitAndClick(page, ".header-nav-btn.home");
-    }
-    await page.waitForSelector(".react-swipeable-view-container>div:nth-child(2) .deadline-list-item .jyo-panel");
-    await waitAndClick(page, ".tab-list li:nth-child(2) .btn-tab");
-    await page.waitForSelector(".odds-popular-table-group");
+    await waitAndClick(page, ".top-nav-link.deadline");
+    const moved = await page.evaluate(
+      (index, currentTime) => {
+        console.log(index, currentTime);
+        const element = document.querySelectorAll(".react-swipeable-view-container>div:nth-child(2) .deadline-list-item .jyo-panel")[
+          index
+        ] as HTMLElement;
+        const time = parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].replace(":", ""));
+        if (time - currentTime <= 5) {
+          element.click();
+          return true;
+        } else {
+          return false;
+        }
+      },
+      i,
+      currentTimeNumber(),
+    );
+    if (moved) await page.waitForNavigation({ waitUntil: "networkidle2" });
   }
+}
+
+function currentTimeNumber() {
+  const date = new Date();
+  return date.getHours() * 100 + date.getMinutes();
 }

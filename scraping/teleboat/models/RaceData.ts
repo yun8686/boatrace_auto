@@ -2,7 +2,7 @@ import { Ren } from "../types";
 import { getConnection } from "../../../database/database";
 import { Connection } from "mysql";
 
-export type RaceData = {
+export type RaceOddsData = {
   racedate: Date;
   jyoCode: string;
   raceNo: string;
@@ -58,7 +58,7 @@ async function createDatabase() {
 }
 //createDatabase();
 
-export const insertRaceData = async (data: RaceData[]) => {
+export const insertRaceData = async (data: RaceOddsData[]) => {
   const connection = await getConnection();
   for (const raceData of data) {
     const rowData = tableColumns.racedata.map((key) => raceData[key]);

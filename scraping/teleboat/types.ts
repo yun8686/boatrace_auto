@@ -12,12 +12,10 @@ export type Ren = {
 
 export type ResultData = {
   jyoCode: string;
-  jyoData: {
-    raceList: {
-      raceNo: string;
-      raceStatus: "4" | null;
-      santanList: Result[];
-    }[];
+  raceList: {
+    raceNo: string;
+    raceStatus: "4" | null;
+    santanList: Result[];
   }[];
 };
 export type Result = {

@@ -1,5 +1,5 @@
 import { Page, Response } from "puppeteer";
-import { OddsData, Ren, ResultData } from "./types";
+import { OddsData, Ren, ResultData, Result } from "./types";
 import { getResponseData, getRequestPayload } from "../puppeteer";
 
 type Callbacks = {
@@ -11,20 +11,22 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
     if (response.url().indexOf("payout_list") >= 0) {
       const buf = await response.buffer();
       const data = JSON.parse(buf.toString("utf-8", 0, buf.length));
-      const resultData: ResultData[] = data.map((result) => ({
-        racedate: new Date(),
-        jyoCode: result.jyoCode,
-        jyoData: result.jyoData.map((jyo) => ({
-          raceList: jyo.raceList.map((race) => ({
+      const resultData: ResultData[] = data.jyoList.map((jyo: { jyoCode: string; raceList: any[] }) => ({
+        jyoCode: jyo.jyoCode,
+        raceList: jyo.raceList
+          .filter(({ raceStatus }) => raceStatus === "4")
+          .map((race: { raceNo: string; raceStatus: string; santanList: any[] }) => ({
             raceNo: race.raceNo,
             raceStatus: race.raceStatus,
-            santanList: race.santanList.map((santan) => ({
-              kumiban: santan.kumiban,
-              payout: santan.payout,
-              odds: parseInt(santan.payout) * 0.01,
-            })),
+            santanList: race.santanList.map<Result>(
+              (santan: { kumiban: string; payout: string }) =>
+                ({
+                  kumiban: santan.kumiban,
+                  payout: parseInt(santan.payout),
+                  odds: parseInt(santan.payout) * 0.01,
+                } as Result),
+            ),
           })),
-        })),
       }));
       await Promise.all(callbacks.resultCallback.map((fnc) => fnc(resultData)));
     } else if (response.url().indexOf("/bet?") >= 0) {
