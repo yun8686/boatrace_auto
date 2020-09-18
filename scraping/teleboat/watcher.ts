@@ -3,8 +3,8 @@ import { OddsData, Ren, ResultData } from "./types";
 import { getResponseData, getRequestPayload } from "../puppeteer";
 
 type Callbacks = {
-  oddsCallback: ((oddsData: OddsData) => void)[];
-  resultCallback: ((resultData: ResultData[]) => void)[];
+  oddsCallback: ((oddsData: OddsData) => Promise<void>)[];
+  resultCallback: ((resultData: ResultData[]) => Promise<void>)[];
 };
 export function setWatcher(page: Page, callbacks: Callbacks) {
   page.on("response", async (response: Response) => {
@@ -12,6 +12,7 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
       const buf = await response.buffer();
       const data = JSON.parse(buf.toString("utf-8", 0, buf.length));
       const resultData: ResultData[] = data.map((result) => ({
+        racedate: new Date(),
         jyoCode: result.jyoCode,
         jyoData: result.jyoData.map((jyo) => ({
           raceList: jyo.raceList.map((race) => ({
@@ -25,7 +26,7 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
           })),
         })),
       }));
-      callbacks.resultCallback.forEach((fnc) => fnc(resultData));
+      await Promise.all(callbacks.resultCallback.map((fnc) => fnc(resultData)));
     } else if (response.url().indexOf("/bet?") >= 0) {
       const request = getRequestPayload(response);
       const data = await getResponseData(response);
@@ -35,8 +36,11 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
         rentan3: (data.oddsDetailListByKachishiki[6] as { kumiban: string; minOdds: number }[])
           .sort((a, b) => a.minOdds - b.minOdds)
           .map<Ren>((v) => ({ kumiban: v.kumiban as string, odds: v.minOdds as number })),
+        rentan2: (data.oddsDetailListByKachishiki[3] as { kumiban: string; minOdds: number }[])
+          .sort((a, b) => a.minOdds - b.minOdds)
+          .map<Ren>((v) => ({ kumiban: v.kumiban as string, odds: v.minOdds as number })),
       };
-      callbacks.oddsCallback.forEach((fnc) => fnc(oddsData));
+      await Promise.all(callbacks.oddsCallback.map((fnc) => fnc(oddsData)));
     }
   });
 }

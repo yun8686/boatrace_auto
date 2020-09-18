@@ -2,7 +2,7 @@ import { Page } from "puppeteer";
 import { goHome, waitNavigation } from "./common";
 import { waitAndClick } from "../puppeteer";
 
-async function getNextRaces(page: Page) {
+export async function getNextRaces(page: Page) {
   await goHome(page);
   await page.waitForSelector(".react-swipeable-view-container>div:nth-child(2)");
   const raceLength = await page.evaluate(() => {

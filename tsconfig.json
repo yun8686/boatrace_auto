@@ -3,6 +3,8 @@
     "moduleResolution": "node",
     "target": "es2018",
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["es5", "es6", "dom"],
+    "outDir": "./build"
   }
 }

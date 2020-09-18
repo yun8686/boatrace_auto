@@ -2,7 +2,7 @@ export type OddsData = {
   jyoCode: string;
   raceNo: string;
   rentan3: Ren[];
-  rentan2?: Ren[];
+  rentan2: Ren[];
 };
 
 export type Ren = {
