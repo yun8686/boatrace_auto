@@ -7,6 +7,17 @@ export async function waitNavigation(page: Page) {
   });
   return true;
 }
+export async function waitSelector(page: Page, selector: string) {
+  await page.waitForFunction(
+    (selector) => {
+      return !!document.querySelector(selector);
+    },
+    {},
+    selector,
+  );
+  return true;
+}
+export const sleep = async (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export async function goHome(page: Page) {
   if (await page.$(".header-nav-btn.home")) {

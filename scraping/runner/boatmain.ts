@@ -9,7 +9,6 @@ import cron from "node-cron";
 
 (async () => {
   const page = await login();
-  console.log("logined");
   setWatcher(page, {
     oddsCallback: [saveOddsData],
     resultCallback: [saveResultData],

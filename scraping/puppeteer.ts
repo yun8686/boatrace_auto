@@ -1,4 +1,5 @@
 import puppeteer, { Page, Response } from "puppeteer";
+import { waitSelector } from "./teleboat/common";
 const devices = puppeteer.devices;
 
 export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions) {
@@ -15,7 +16,7 @@ export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions)
 }
 
 export async function waitAndClick(page: Page, selector: string) {
-  await page.waitForSelector(selector);
+  await waitSelector(page, selector);
   await page.click(selector);
 }
 
