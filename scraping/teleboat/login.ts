@@ -1,13 +1,9 @@
 import { getBrowserPage } from "../puppeteer";
 import teleboat from "../../settings/teleboat.setting.json";
-import { Page } from "puppeteer";
+import { Page, LaunchOptions } from "puppeteer";
 
-export async function login(page?: Page) {
-  if (!page) {
-    page = await getBrowserPage();
-  } else {
-    return;
-  }
+export async function login(addLaunchOptions?: LaunchOptions) {
+  const page = await getBrowserPage(addLaunchOptions);
   await page.goto("https://spweb.brtb.jp/account");
   let loadPromise = page.waitForNavigation();
   const disabledLoginButton = await page.evaluate(() => {

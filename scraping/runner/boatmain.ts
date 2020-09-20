@@ -1,10 +1,11 @@
 import { login } from "../teleboat/login";
 import { setWatcher } from "../teleboat/watcher";
 import { OddsData, ResultData } from "../teleboat/types";
-import { insertRaceData, RaceOddsData } from "../teleboat/models/RaceData";
+import { insertRaceData, RaceOddsData, isExistsRaceData } from "../teleboat/models/RaceData";
 import { getNextRaces } from "../teleboat/checkOdds";
 import { checkResults } from "../teleboat/checkResults";
 import { insertRaceResultData, RaceResultData } from "../teleboat/models/RaceResultData";
+import cron from "node-cron";
 
 (async () => {
   const page = await login();
@@ -13,8 +14,17 @@ import { insertRaceResultData, RaceResultData } from "../teleboat/models/RaceRes
     oddsCallback: [saveOddsData],
     resultCallback: [saveResultData],
   });
-  await getNextRaces(page);
-  await checkResults(page);
+  cron.schedule("1-59/2 8-20 * * *", async () => {
+    console.log("start");
+    try {
+      await getNextRaces(page);
+      await checkResults(page);
+      console.log("end");
+    } catch (e) {
+      console.log("error", e);
+      process.exit();
+    }
+  });
 })();
 
 const saveOddsData = async (oddsData: OddsData) => {
@@ -23,10 +33,11 @@ const saveOddsData = async (oddsData: OddsData) => {
     racedate: new Date(),
     ...oddsData,
   };
-  //  insertRaceData([raceData]);
+  if (!(await isExistsRaceData(raceData))) {
+    insertRaceData([raceData]);
+  }
 };
 const saveResultData = async (resultData: ResultData[]) => {
-  console.log("resultData", resultData);
   const raceResultData = resultData.reduce((prev, data) => {
     return [
       ...prev,

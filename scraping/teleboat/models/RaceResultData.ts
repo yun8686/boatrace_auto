@@ -20,7 +20,7 @@ const createTableQueries = [
     jyoCode varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
     raceNo varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
     santankumiban varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-    santanodds double,
+    santanodds double(7, 2),
     primary key(racedate, jyoCode, raceNo)
   ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 `,
@@ -30,13 +30,12 @@ async function createDatabase() {
   const connection = await getConnection();
   await Promise.all(createTableQueries.map((q) => connection.query(q))).then(() => console.log("ok"));
 }
-//createDatabase();
 
 export const insertRaceResultData = async (data: RaceResultData[]) => {
   const connection = await getConnection();
   for (const raceResultData of data) {
     const rowData = tableColumns.raceresult.map((key) => raceResultData[key]);
-    await query(connection, `insert into raceresult (${tableColumns.raceresult.join(",")}) values ?`, [[rowData]]);
+    await query(connection, `replace into raceresult (${tableColumns.raceresult.join(",")}) values ?`, [[rowData]]);
   }
 };
 
