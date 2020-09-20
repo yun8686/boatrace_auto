@@ -17,6 +17,18 @@ export async function buyTicket(page: Page, param: Parameter) {
   await waitNavigation(page);
 
   await waitAndClick(page, ".btn-select-race");
+  await waitNavigation(page);
+  const raceDisabled = await page.evaluate((selector) => {
+    return document.querySelector(selector).disabled;
+  }, `.race-select #race-${parseInt(param.raceNo)}`);
+  console.log("raceDisabled", raceDisabled);
+  if (raceDisabled) {
+    console.log("race is already closed", param);
+    await waitAndClick(page, ".modal-close");
+    await sleep(1000);
+    await goHome(page);
+    return;
+  }
   await waitAndClick(page, `.race-select #race-${parseInt(param.raceNo)}`);
   await waitNavigation(page);
 
@@ -45,6 +57,7 @@ export async function buyTicket(page: Page, param: Parameter) {
   await page.evaluate(() => {
     (document.querySelector(".btn-purchase") as HTMLInputElement).click();
   });
+  await goHome(page);
 }
 
 async function checkDeposit(page, minimumPrice: number) {
