@@ -1,6 +1,7 @@
-import puppeteer, { Page, Response } from "puppeteer";
+import puppeteer, { Page, Response, devices } from "puppeteer";
 import { waitSelector } from "./teleboat/common";
-const devices = puppeteer.devices;
+
+let browser: puppeteer.Browser;
 
 export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions) {
   const launchOptions = {
@@ -8,11 +9,25 @@ export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions)
     args: ["--no-sandbox"],
     ...addLaunchOptions,
   };
-  const browser = await puppeteer.launch(launchOptions);
-  const page = await browser.newPage();
-  const iPhone = devices["iPhone X"]; //デバイスはiPhone6を選択
-  await page.emulate(iPhone); // デバイス適用
-  return page;
+  browser = await puppeteer.launch(launchOptions);
+  return getMainPage();
+}
+
+const PageMap: { [key: string]: Page } = {
+  mainPage: null,
+  buyTicketPage: null,
+};
+export async function getMainPage() {
+  if (PageMap.mainPage) return PageMap.mainPage;
+  PageMap.mainPage = await browser.newPage();
+  await PageMap.mainPage.emulate(puppeteer.devices["iPhone X"]);
+  return PageMap.mainPage;
+}
+export async function getBuyTicketPage() {
+  if (PageMap.buyTicketPage) return PageMap.buyTicketPage;
+  PageMap.buyTicketPage = await browser.newPage();
+  await PageMap.buyTicketPage.emulate(puppeteer.devices["iPhone X"]);
+  return PageMap.buyTicketPage;
 }
 
 export async function waitAndClick(page: Page, selector: string) {

@@ -2,7 +2,10 @@ import { Page } from "puppeteer";
 import { goHome, waitNavigation } from "./common";
 import { waitAndClick } from "../puppeteer";
 
-export async function getNextRaces(page: Page) {
+type Params = {
+  limitDiff: number; // 何分前に取得するか
+};
+export async function getNextRaces(page: Page, params: Params) {
   await goHome(page);
   await page.screenshot({
     path: `./waitForSelector.png`,
@@ -24,13 +27,13 @@ export async function getNextRaces(page: Page) {
     await waitAndClick(page, ".top-nav-link.deadline");
     console.log(".top-nav-link.deadline", ".top-nav-link.deadline");
     const moved = await page.evaluate(
-      (index, currentTime) => {
+      (index, currentTime, limitDiff) => {
         console.log(index, currentTime);
         const element = document.querySelectorAll(".react-swipeable-view-container>div:nth-child(2) .deadline-list-item .jyo-panel")[
           index
         ] as HTMLElement;
         const time = parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].replace(":", ""));
-        if (time - currentTime <= 5) {
+        if (time - currentTime <= limitDiff) {
           element.click();
           return true;
         } else {
@@ -39,6 +42,7 @@ export async function getNextRaces(page: Page) {
       },
       i,
       currentTimeNumber(),
+      params.limitDiff,
     );
     if (moved) await page.waitForNavigation({ waitUntil: "networkidle2" });
   }

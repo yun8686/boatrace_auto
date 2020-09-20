@@ -1,5 +1,5 @@
 const config = require("../settings/mysql.setting.json");
-import mysql from "mysql";
+import mysql, { Connection, queryCallback } from "mysql";
 
 let connection: mysql.Connection;
 const connectDatabase = async () => {
@@ -17,3 +17,19 @@ const connectDatabase = async () => {
 export const getConnection = async () => {
   return connection ? connection : await connectDatabase();
 };
+
+export async function logQuery<T>(sql: string, values: any[]) {
+  try {
+    const connection = await getConnection();
+    const query = connection.format(sql, values);
+    console.log(query);
+    return new Promise<T>((resolve) =>
+      connection.query(query, (err, results) => {
+        console.log("results", results);
+        resolve(results);
+      }),
+    );
+  } catch (e) {
+    console.log(sql, e);
+  }
+}

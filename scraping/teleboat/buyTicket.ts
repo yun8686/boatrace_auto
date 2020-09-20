@@ -9,7 +9,7 @@ type Parameter = {
   kumiban: string;
   price: number;
 };
-export async function buyTicket(page: Page, param: Parameter) {
+export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean) {
   await goHome(page);
   await checkDeposit(page, param.price);
 
@@ -54,9 +54,12 @@ export async function buyTicket(page: Page, param: Parameter) {
   await waitNavigation(page);
 
   await page.type(".input-money-block input", param.price.toString());
-  await page.evaluate(() => {
-    (document.querySelector(".btn-purchase") as HTMLInputElement).click();
-  });
+  if (isDebug) {
+    await page.evaluate(() => {
+      (document.querySelector(".btn-purchase") as HTMLInputElement).click();
+    });
+  }
+  console.log("buy complete!", param);
   await goHome(page);
 }
 

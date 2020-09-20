@@ -28,7 +28,11 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
             ),
           })),
       }));
-      await Promise.all(callbacks.resultCallback.map((fnc) => fnc(resultData)));
+      if (callbacks.resultCallback.length > 0) {
+        for (let i = 0; i < callbacks.resultCallback.length; i++) {
+          await callbacks.resultCallback[i](resultData);
+        }
+      }
     } else if (response.url().indexOf("/bet?") >= 0) {
       const request = getRequestPayload(response);
       const data = await getResponseData(response);
@@ -42,7 +46,12 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
           .sort((a, b) => a.minOdds - b.minOdds)
           .map<Ren>((v) => ({ kumiban: v.kumiban as string, odds: v.minOdds as number })),
       };
-      await Promise.all(callbacks.oddsCallback.map((fnc) => fnc(oddsData)));
+
+      if (callbacks.oddsCallback.length > 0) {
+        for (let i = 0; i < callbacks.oddsCallback.length; i++) {
+          await callbacks.oddsCallback[i](oddsData);
+        }
+      }
     }
   });
 }
