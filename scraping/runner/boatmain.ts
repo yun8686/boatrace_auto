@@ -12,19 +12,27 @@ import { getNextPrice, insertBuyData, BuyData } from "../teleboat/models/BuyData
 import { postTweet } from "../../twitter/twitter";
 import { getJyoName } from "../teleboat/models/JyoMaster";
 
-const limitDiff = 3; // 何分前オッズを集計するか
+const limitDiff = 30; // 何分前オッズを集計するか
 const isBuyDebug = true; // 実際に購入するか(trueの場合は購入しない)
 
 (async () => {
   console.log("rerun boatmain");
   const page = await login();
   setWatcher(page, {
-    oddsCallback: [saveOddsData, runBuyTicket],
+    oddsCallback: [saveOddsData /*runBuyTicket*/],
     resultCallback: [saveResultData],
   });
 
-  await getNextRaces(page, { limitDiff });
-  await checkResults(page);
+  try {
+    await getNextRaces(page, { limitDiff });
+    await checkResults(page);
+  } catch (e) {
+    console.log("error", e);
+    await page.screenshot({
+      path: `./mainerror.png`,
+    });
+    process.exit();
+  }
 
   cron.schedule("1-59/2 8-20 * * *", async () => {
     console.log("start");
@@ -54,7 +62,11 @@ const saveOddsData = async (oddsData: OddsData) => {
 const runBuyTicket = async (oddsData: OddsData) => {
   if (oddsData.rentan3[0].odds <= 6.0) {
     const buyTicketPage = await getBuyTicketPage();
-    buyTicket(
+    await buyTicketPage.goto("https://spweb.brtb.jp/account");
+    await buyTicketPage.screenshot({
+      path: `./buyTicketPage.png`,
+    });
+    await buyTicket(
       buyTicketPage,
       {
         jyoCode: oddsData.jyoCode,
@@ -73,12 +85,15 @@ const runBuyTicket = async (oddsData: OddsData) => {
       kumiban: oddsData.rentan3[0].kumiban,
       price: price,
     };
-    insertBuyData(buyData);
+    await insertBuyData(buyData);
     console.log("run buyTicket End", buyData);
-    await postTweet(`競艇ココモ法テスト中
-${getJyoName(oddsData.jyoCode)}${parseInt(oddsData.raceNo)}R
-${price} ${oddsData.rentan3[0].odds} ${oddsData.rentan3[0].kumiban}円
-#競艇 #ココモ法 #資産運用`);
+    console.log(
+      "Tweet text",
+      `競艇ココモ法テスト中
+      ${getJyoName(oddsData.jyoCode)}${parseInt(oddsData.raceNo)}R
+      ${price} ${oddsData.rentan3[0].odds} ${oddsData.rentan3[0].kumiban}円
+      #競艇 #ココモ法 #資産運用`,
+    );
   }
 };
 

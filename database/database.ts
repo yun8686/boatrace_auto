@@ -22,10 +22,9 @@ export async function logQuery<T>(sql: string, values: any[]) {
   try {
     const connection = await getConnection();
     const query = connection.format(sql, values);
-    console.log(query);
-    return new Promise<T>((resolve) =>
+    return new Promise<T[]>((resolve, reject) =>
       connection.query(query, (err, results) => {
-        console.log("results", results);
+        if (err) reject(err);
         resolve(results);
       }),
     );

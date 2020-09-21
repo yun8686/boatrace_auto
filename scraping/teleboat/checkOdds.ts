@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { goHome, waitNavigation } from "./common";
+import { goHome, waitNavigation, sleep } from "./common";
 import { waitAndClick } from "../puppeteer";
 
 type Params = {
@@ -23,6 +23,7 @@ export async function getNextRaces(page: Page, params: Params) {
   });
   console.log("raceLength", raceLength);
   for (let i = 0; i < raceLength; i++) {
+    await sleep(1000);
     await goHome(page);
     await waitAndClick(page, ".top-nav-link.deadline");
     console.log(".top-nav-link.deadline", ".top-nav-link.deadline");
@@ -44,7 +45,7 @@ export async function getNextRaces(page: Page, params: Params) {
       currentTimeNumber(),
       params.limitDiff,
     );
-    if (moved) await page.waitForNavigation({ waitUntil: "networkidle2" });
+    if (moved) await page.waitForNavigation({ waitUntil: "networkidle0" });
   }
 }
 

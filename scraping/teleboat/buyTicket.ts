@@ -10,7 +10,6 @@ type Parameter = {
   price: number;
 };
 export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean) {
-  await goHome(page);
   await checkDeposit(page, param.price);
 
   await waitAndClick(page, `.jyo-list li:nth-child(${parseInt(param.jyoCode)}) div`);
@@ -63,11 +62,21 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
   await goHome(page);
 }
 
-async function checkDeposit(page, minimumPrice: number) {
+export async function checkDeposit(page, minimumPrice: number) {
   await goHome(page);
-  await page.evaluate(() => {
-    (document.querySelector(".payment") as HTMLInputElement).click();
+  await page.screenshot({
+    path: `./checkdeposit.png`,
   });
+  try {
+    await page.evaluate(() => {
+      (document.querySelector(".payment") as HTMLInputElement).click();
+    });
+  } catch (e) {
+    await page.screenshot({
+      path: `./checkdeposit_error.png`,
+    });
+    throw e;
+  }
   await waitNavigation(page);
   const deposit = await page.evaluate(() => {
     return parseInt((document.querySelectorAll(".deposit-table dd")[2] as HTMLInputElement).innerText.replace(",", ""));

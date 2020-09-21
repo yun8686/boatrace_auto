@@ -40,7 +40,7 @@ export async function insertBuyData(buyData: BuyData) {
 }
 
 export async function getNextPrice(jyoCode: string) {
-  const results = await logQuery<(BuyData & { winstatus: "win" | "lose" | "waiting" })[]>(
+  const results = await logQuery<BuyData & { winstatus: "win" | "lose" | "waiting" }>(
     "SELECT b.price, case " +
       " when r.santankumiban is null then 'waiting' " +
       " when b.kumiban = r.santankumiban then 'win' else 'lose' end as winstatus " +
