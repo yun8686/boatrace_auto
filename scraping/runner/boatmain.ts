@@ -8,24 +8,25 @@ import { insertRaceResultData, RaceResultData } from "../teleboat/models/RaceRes
 import cron from "node-cron";
 import { buyTicket } from "../teleboat/buyTicket";
 import { getBuyTicketPage } from "../puppeteer";
-import { getNextPrice, insertBuyData, BuyData } from "../teleboat/models/BuyData";
+import { getNextPrice, insertBuyData, isExistsBuyData, BuyData } from "../teleboat/models/BuyData";
 import { postTweet } from "../../twitter/twitter";
 import { getJyoName } from "../teleboat/models/JyoMaster";
+import { barance01_OddsCallback, barance01_ResultCallback } from "./barance01/watcher";
 
-const limitDiff = 30; // 何分前オッズを集計するか
+const limitDiff = 3; // 何分前オッズを集計するか
 const isBuyDebug = true; // 実際に購入するか(trueの場合は購入しない)
 
 (async () => {
   console.log("rerun boatmain");
   const page = await login();
   setWatcher(page, {
-    oddsCallback: [saveOddsData /*runBuyTicket*/],
-    resultCallback: [saveResultData],
+    oddsCallback: [saveOddsData, runBuyTicket, barance01_OddsCallback],
+    resultCallback: [saveResultData, barance01_ResultCallback],
   });
 
   try {
-    await getNextRaces(page, { limitDiff });
     await checkResults(page);
+    await getNextRaces(page, { limitDiff });
   } catch (e) {
     console.log("error", e);
     await page.screenshot({
@@ -37,8 +38,8 @@ const isBuyDebug = true; // 実際に購入するか(trueの場合は購入し�
   cron.schedule("1-59/2 8-20 * * *", async () => {
     console.log("start");
     try {
-      await getNextRaces(page, { limitDiff });
       await checkResults(page);
+      await getNextRaces(page, { limitDiff });
       console.log("end");
     } catch (e) {
       console.log("error", e);
@@ -61,22 +62,6 @@ const saveOddsData = async (oddsData: OddsData) => {
 
 const runBuyTicket = async (oddsData: OddsData) => {
   if (oddsData.rentan3[0].odds <= 6.0) {
-    const buyTicketPage = await getBuyTicketPage();
-    await buyTicketPage.goto("https://spweb.brtb.jp/account");
-    await buyTicketPage.screenshot({
-      path: `./buyTicketPage.png`,
-    });
-    await buyTicket(
-      buyTicketPage,
-      {
-        jyoCode: oddsData.jyoCode,
-        raceNo: oddsData.raceNo,
-        oddsType: "rentan3",
-        kumiban: oddsData.rentan3[0].kumiban,
-        price: await getNextPrice(oddsData.jyoCode),
-      },
-      isBuyDebug,
-    );
     const price = await getNextPrice(oddsData.jyoCode);
     const buyData: BuyData = {
       racedate: new Date(),
@@ -85,15 +70,9 @@ const runBuyTicket = async (oddsData: OddsData) => {
       kumiban: oddsData.rentan3[0].kumiban,
       price: price,
     };
-    await insertBuyData(buyData);
-    console.log("run buyTicket End", buyData);
-    console.log(
-      "Tweet text",
-      `競艇ココモ法テスト中
-      ${getJyoName(oddsData.jyoCode)}${parseInt(oddsData.raceNo)}R
-      ${price} ${oddsData.rentan3[0].odds} ${oddsData.rentan3[0].kumiban}円
-      #競艇 #ココモ法 #資産運用`,
-    );
+    if (!(await isExistsBuyData(buyData))) {
+      await insertBuyData(buyData);
+    }
   }
 };
 

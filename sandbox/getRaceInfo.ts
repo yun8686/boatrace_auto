@@ -31,6 +31,7 @@ import https from "https";
         jyoCode: padding(parseInt(result.jcd)),
         raceNo: padding(parseInt(result.rno)),
         time: parseInt(result.deadline.replace(/:/g, "")) / 100,
+        daynum: null,
       })),
     );
     await insertRaceInfo(raceInfos);

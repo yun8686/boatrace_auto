@@ -30,7 +30,11 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
       }));
       if (callbacks.resultCallback.length > 0) {
         for (let i = 0; i < callbacks.resultCallback.length; i++) {
-          await callbacks.resultCallback[i](resultData);
+          try {
+            await callbacks.resultCallback[i](resultData);
+          } catch (e) {
+            console.error("callbacks.resultCallback", e);
+          }
         }
       }
     } else if (response.url().indexOf("/bet?") >= 0) {
@@ -49,7 +53,11 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
 
       if (callbacks.oddsCallback.length > 0) {
         for (let i = 0; i < callbacks.oddsCallback.length; i++) {
-          await callbacks.oddsCallback[i](oddsData);
+          try {
+            await callbacks.oddsCallback[i](oddsData);
+          } catch (e) {
+            console.error("callbacks.resultCallback", e);
+          }
         }
       }
     }

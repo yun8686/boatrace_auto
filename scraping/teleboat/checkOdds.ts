@@ -26,7 +26,6 @@ export async function getNextRaces(page: Page, params: Params) {
     await sleep(1000);
     await goHome(page);
     await waitAndClick(page, ".top-nav-link.deadline");
-    console.log(".top-nav-link.deadline", ".top-nav-link.deadline");
     const moved = await page.evaluate(
       (index, currentTime, limitDiff) => {
         console.log(index, currentTime);

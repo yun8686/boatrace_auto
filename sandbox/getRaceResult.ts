@@ -1,6 +1,3 @@
-import { getBrowserPage } from "../scraping/puppeteer";
-import { getJyoCode } from "../scraping/teleboat/models/JyoMaster";
-import { RaceInfo, insertRaceInfo } from "../scraping/teleboat/models/RaceInfo";
 import https from "https";
 import { RaceResultData, insertRaceResultData } from "../scraping/teleboat/models/RaceResultData";
 

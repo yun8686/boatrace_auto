@@ -18,17 +18,22 @@ export const getConnection = async () => {
   return connection ? connection : await connectDatabase();
 };
 
-export async function logQuery<T>(sql: string, values: any[]) {
+export async function logQuery<T>(sql: string, values?: any[]) {
   try {
     const connection = await getConnection();
-    const query = connection.format(sql, values);
+    const query = connection.format(sql, values ? values : undefined);
     return new Promise<T[]>((resolve, reject) =>
       connection.query(query, (err, results) => {
-        if (err) reject(err);
+        if (err) {
+          console.log("era-", err);
+          reject(err);
+        }
+        console.log(query);
         resolve(results);
       }),
     );
   } catch (e) {
     console.log(sql, e);
+    throw "era-";
   }
 }

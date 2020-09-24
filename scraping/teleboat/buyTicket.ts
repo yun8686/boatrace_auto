@@ -1,6 +1,7 @@
 import { Page } from "puppeteer";
 import { goHome, waitNavigation, sleep } from "./common";
 import { waitAndClick } from "../puppeteer";
+import { BuyStatus } from "./models/BuyData";
 
 type Parameter = {
   jyoCode: string;
@@ -9,7 +10,7 @@ type Parameter = {
   kumiban: string;
   price: number;
 };
-export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean) {
+export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean): Promise<BuyStatus> {
   await checkDeposit(page, param.price);
 
   await waitAndClick(page, `.jyo-list li:nth-child(${parseInt(param.jyoCode)}) div`);
@@ -26,7 +27,7 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
     await waitAndClick(page, ".modal-close");
     await sleep(1000);
     await goHome(page);
-    return;
+    return "closed";
   }
   await waitAndClick(page, `.race-select #race-${parseInt(param.raceNo)}`);
   await waitNavigation(page);
@@ -53,13 +54,23 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
   await waitNavigation(page);
 
   await page.type(".input-money-block input", param.price.toString());
-  if (isDebug) {
+  console.log("isDebug", isDebug);
+  const logtime = new Date().getTime();
+  await page.screenshot({
+    path: `./buyPrev${logtime}.png`,
+  });
+  if (!isDebug) {
+    await sleep(500);
     await page.evaluate(() => {
       (document.querySelector(".btn-purchase") as HTMLInputElement).click();
     });
   }
+  await page.screenshot({
+    path: `./buyComplete${logtime}.png`,
+  });
   console.log("buy complete!", param);
   await goHome(page);
+  return "complete";
 }
 
 export async function checkDeposit(page, minimumPrice: number) {
