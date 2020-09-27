@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "csv-stringify": "^5.5.1",
     "https": "^1.0.0",
     "mysql": "^2.18.1",
     "node-cron": "^2.0.3",
