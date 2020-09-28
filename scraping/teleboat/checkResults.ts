@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { goHome } from "./common";
+import { goHome, sleep } from "./common";
 
 export async function checkResults(page: Page) {
   await goHome(page);
@@ -11,5 +11,6 @@ export async function checkResults(page: Page) {
       }
     }),
   );
+  await sleep(500);
   await navi;
 }

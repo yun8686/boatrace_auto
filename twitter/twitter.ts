@@ -2,11 +2,15 @@ import Twitter from "twitter";
 import setting from "../settings/twitter.setting.json";
 const client = new Twitter(setting);
 
-export const postTweet = (content: string) => {
-  return new Promise((resolve, reject) => {
-    client.post("statuses/update", { status: content }, function (error, _tweet, _response) {
+type Response = {
+  content: string;
+  id: number;
+};
+export const postTweet = (content: string, in_reply_to_status_id?: string) => {
+  return new Promise<Response>((resolve, reject) => {
+    client.post("statuses/update", { status: content, in_reply_to_status_id }, function (error, _tweet, _response) {
       if (!error) {
-        resolve("tweet success: " + content);
+        resolve({ content, id: _tweet.id_str });
       } else {
         reject(error);
       }

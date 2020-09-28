@@ -21,7 +21,13 @@ export const sleep = async (ms: number) => new Promise<void>((resolve) => setTim
 
 export async function goHome(page: Page) {
   if (await page.$(".header-nav-btn.home")) {
-    await waitAndClick(page, ".header-nav-btn.home");
-    await waitNavigation(page);
+    try {
+      await waitAndClick(page, ".header-nav-btn.home");
+      await waitNavigation(page);
+    } catch (e) {
+      await page.screenshot({
+        path: `./goHomeError${new Date().getTime()}.png`,
+      });
+    }
   }
 }

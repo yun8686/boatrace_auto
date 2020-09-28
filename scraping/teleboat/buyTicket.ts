@@ -56,18 +56,12 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
   await page.type(".input-money-block input", param.price.toString());
   console.log("isDebug", isDebug);
   const logtime = new Date().getTime();
-  await page.screenshot({
-    path: `./buyPrev${logtime}.png`,
-  });
   if (!isDebug) {
     await sleep(500);
     await page.evaluate(() => {
       (document.querySelector(".btn-purchase") as HTMLInputElement).click();
     });
   }
-  await page.screenshot({
-    path: `./buyComplete${logtime}.png`,
-  });
   console.log("buy complete!", param);
   await goHome(page);
   return "complete";
@@ -75,9 +69,6 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
 
 export async function checkDeposit(page, minimumPrice: number) {
   await goHome(page);
-  await page.screenshot({
-    path: `./checkdeposit.png`,
-  });
   try {
     await page.evaluate(() => {
       (document.querySelector(".payment") as HTMLInputElement).click();
