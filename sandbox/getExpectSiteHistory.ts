@@ -1,4 +1,4 @@
-// https://apaie.org/ranking/recommend/
+// https://apaie.org/free/?days=180
 // こちらのページの予測結果を取得
 // 実行コマンド
 // yarn ts-node sandbox/getExpectSiteHistory.ts
@@ -43,21 +43,21 @@ import { sleep } from "../scraping/teleboat/common";
   ];
 
   const page = await getBrowserPage({ headless: false });
-  await page.goto("https://apaie.org/ranking/recommend/");
+  await page.goto("https://apaie.org/free/?days=180");
 
   // 遷移ボタンを取得
-  const clickButtons = await page.$$(".btn.btn-red");
-  for (let i=0; i < clickButtons.length; i++) {
+  const clickLists = await page.$$(".freelist > li");
+  for (let i=0; i < clickLists.length; i++) {
 
-    const Buttons = await page.$$(".btn.btn-red");
+    const lists = await page.$$(".freelist > li");
     await sleep(1000)
-    await Buttons[i].click();
-    await page.waitForSelector('.date');
-    
+    await lists[i].click();
+    await page.waitForSelector('.categoryNav');
+
     // データを取得
     let betsData = await page.evaluate((jyoData) => {
-      const h1 = document.querySelector(".categoryNav > h2");
-      const siteName = h1.textContent.match(/(?<=\「).*?(?=\」)/);
+      const h2 = document.querySelector(".categoryNav > h2");
+      const siteName = h2.textContent.match(/(?<=\「).*?(?=\」)/);
       
       const resultData = [];
       const dl = document.querySelectorAll(".betlist > dl");
@@ -71,6 +71,7 @@ import { sleep } from "../scraping/teleboat/common";
         const bets = [];
         const betElem = elem.querySelector(".bet").querySelectorAll("span");
         betElem.forEach(function (bet) {
+          console.log(bet.textContent);
           bets.push(bet.textContent.trim());
         })
 
@@ -89,15 +90,15 @@ import { sleep } from "../scraping/teleboat/common";
       return resultData;
     },jyoData);
 
-    console.log(JSON.stringify(betsData));
+    console.log(JSON.stringify(betsData).replace(/"/g, "'"));
     stringify(betsData, (error, csvString) => {
       // ファイルシステムに対してファイル名を指定し、ファイルストリームを生成する.
       const writableStream = fs.createWriteStream(path.join("./sandbox/betsData/", `${betsData[0].siteName}.csv`));
       // csvStringをUTF-8で書き出す.
       writableStream.write(iconv.encode(csvString, "UTF-8"));
     });
+    await page.goto("https://apaie.org/free/?days=180");
     await sleep(1000)
-    await page.goto("https://apaie.org/ranking/recommend/");
   }
 
   await page.close();
@@ -115,8 +116,7 @@ export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions)
   await page.setRequestInterception(true);
   page.on("request", (req) => {
     if (["stylesheet", "image", "font", "script"].indexOf(req.resourceType()) >= 0) {
-      // req.abort();
-      req.continue();
+      req.abort();
     } else {
       req.continue();
     }
