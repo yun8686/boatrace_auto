@@ -8,6 +8,10 @@ type Callbacks = {
 };
 export function setWatcher(page: Page, callbacks: Callbacks) {
   page.on("response", async (response: Response) => {
+    const url = response.url();
+    if (!url.endsWith(".svg")) {
+      console.log("response url", response.url());
+    }
     if (response.url().indexOf("payout_list") >= 0) {
       const buf = await response.buffer();
       const data = JSON.parse(buf.toString("utf-8", 0, buf.length));

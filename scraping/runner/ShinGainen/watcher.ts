@@ -1,31 +1,30 @@
 import { OddsData, ResultData } from "../../teleboat/types";
-import {
-  getPoorWallet,
-  Barance01Wallet,
-  insertOrderData,
-  checkBlockWallet,
-  Barance01Order,
-  isExistsOrderData,
-  addTweetList,
-  getWinList,
-  updateTweetListByTweetId,
-  rebaranceWallet,
-} from "./models";
 import { RaceResultData } from "../../teleboat/models/RaceResultData";
 import { getJyoName } from "../../teleboat/models/JyoMaster";
 import { postTweet } from "../../../twitter/twitter";
+import {
+  isExistsOrderData,
+  getPoorWallet,
+  insertOrderData,
+  addTweetList,
+  checkBlockWallet,
+  rebaranceWallet,
+  getWinList,
+  updateTweetListByTweetId,
+  ShingainenWallet,
+} from "./models";
 
 /**
- * 5番人気以下で6倍以上を買っていく
+ * 新概念データ上位を買っていく
  *  SuperCocomo
  */
 
-const targetJyocode = ["03", "23", "24"];
-const targetRate = 4.0 as const;
-export const barance01_OddsCallback = async (oddsData: OddsData) => {
+const targetJyocode = ["24", "18", "19", "22", "12", "21"];
+const targetRate = 1.5 as const;
+export const Shingainen_OddsCallback = async (oddsData: OddsData) => {
   const buyData: { kumiban: string; odds: number; price: number }[] = [];
-  if (!(await isExistsOrderData({ ...oddsData, racedate: new Date() })) && targetJyocode.indexOf(oddsData.jyoCode) >= 0) {
-    const rentan3 = oddsData.rentan3.filter((v, i) => i >= 2 && i <= 4).reverse();
+  if (!(await isExistsOrderData({ ...oddsData, racedate: new Date() }))) {
+    const rentan3 = oddsData.rentan3.filter((v, i) => i <= 5 && v.odds >= 6).reverse();
     for (const odds of rentan3) {
       const wallet = await getPoorWallet(1.0);
       const price = calcPrice(wallet, odds.odds);
@@ -47,7 +46,7 @@ export const barance01_OddsCallback = async (oddsData: OddsData) => {
 
   if (buyData.length > 0) {
     const message = `ローリスク・ローリターン検証中
-    ${getJyoName(oddsData.jyoCode)}${Number(oddsData.raceNo)}R
+    ${getJyoName(oddsData.jyoCode)}${oddsData.raceNo}R
     締切時刻 もう少し
     ${buyData.map((data) => `${data.kumiban} ${data.odds}倍 ${data.price}円`).join("\n")} 
     #競艇 #ココモ法 #資産運用 #不労収入
@@ -68,7 +67,7 @@ export const barance01_OddsCallback = async (oddsData: OddsData) => {
   }
 };
 
-export const barance01_ResultCallback = async (resultData: ResultData[]) => {
+export const Shingainen_ResultCallback = async (resultData: ResultData[]) => {
   await checkBlockWallet();
   await rebaranceWallet();
 
@@ -79,7 +78,7 @@ export const barance01_ResultCallback = async (resultData: ResultData[]) => {
   }
 };
 
-function calcPrice(wallet: Barance01Wallet, odds: number) {
+function calcPrice(wallet: ShingainenWallet, odds: number) {
   const seed = [...Array(100000).keys()].map((i) => (i + 1) * 100);
   return seed.find((v) => (wallet.payout + v * odds) / (wallet.paysum + v) >= targetRate);
 }

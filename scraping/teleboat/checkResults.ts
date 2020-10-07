@@ -11,6 +11,5 @@ export async function checkResults(page: Page) {
       }
     }),
   );
-  await sleep(500);
-  await navi;
+  await Promise.all([sleep(500), navi]);
 }

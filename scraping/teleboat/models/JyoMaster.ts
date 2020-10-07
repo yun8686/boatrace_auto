@@ -35,3 +35,5 @@ const data: JyoMaster[] = [
   { code: "23", name: "唐津" },
   { code: "24", name: "大村" },
 ];
+
+// create table jyomst (code varchar(2) primary key CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL , name varchar(10) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL );
