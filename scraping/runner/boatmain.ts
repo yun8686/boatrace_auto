@@ -27,7 +27,9 @@ const isBuyDebug = true; // 実際に購入するか(trueの場合は購入し�
   });
 
   try {
+    console.log("checkResults");
     await checkResults(page);
+    console.log("getNextRaces");
     await getNextRaces(page, { limitDiff });
   } catch (e) {
     console.log("error", e);
@@ -40,7 +42,9 @@ const isBuyDebug = true; // 実際に購入するか(trueの場合は購入し�
   cron.schedule("1-59/2 8-20 * * *", async () => {
     console.log("start");
     try {
+      console.log("checkResults");
       await checkResults(page);
+      console.log("getNextRaces");
       await getNextRaces(page, { limitDiff });
       console.log("end");
     } catch (e) {
@@ -72,7 +76,7 @@ const saveOddsData = async (oddsData: OddsData) => {
 };
 
 const runBuyTicket = async (oddsData: OddsData) => {
-  if (oddsData.rentan3[0].odds <= 6.0) {
+  if (oddsData.rentan3[0].odds <= 6.0 && oddsData.jyoCode === "12") {
     const price = await getNextPrice(oddsData.jyoCode);
     const buyData: BuyData = {
       racedate: new Date(),

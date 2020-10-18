@@ -15,7 +15,7 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
     if (response.url().indexOf("payout_list") >= 0) {
       const buf = await response.buffer();
       const data = JSON.parse(buf.toString("utf-8", 0, buf.length));
-      const resultData: ResultData[] = data.jyoList.map((jyo: { jyoCode: string; raceList: any[] }) => ({
+      const resultData: ResultData[] = (data.jyoList || []).map((jyo: { jyoCode: string; raceList: any[] }) => ({
         jyoCode: jyo.jyoCode,
         raceList: jyo.raceList
           .filter(({ raceStatus }) => raceStatus === "4")

@@ -35,7 +35,7 @@ async function runBuyTickets(page: Page) {
         kumiban: data.kumiban,
         price: data.price,
       },
-      true,
+      false,
     );
     console.log("ticket buy ", result, data);
     await updateBuyData(data.id, { isbuy: true, buystatus: result });

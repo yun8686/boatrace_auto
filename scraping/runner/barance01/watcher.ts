@@ -20,7 +20,7 @@ import { postTweet } from "../../../twitter/twitter";
  *  SuperCocomo
  */
 
-const targetJyocode = ["03", "23", "24"];
+const targetJyocode = ["16", "12", "6", "24"];
 const targetRate = 4.0 as const;
 export const barance01_OddsCallback = async (oddsData: OddsData) => {
   const buyData: { kumiban: string; odds: number; price: number }[] = [];
