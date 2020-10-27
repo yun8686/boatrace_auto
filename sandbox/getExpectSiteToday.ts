@@ -12,6 +12,7 @@ import { sleep } from "../scraping/teleboat/common";
 let open_browser = false;
 
 var main = async ()=> {
+  console.log('実行中')
   const newDate = new Date();
   const nowTime = Number(`${newDate.getHours()}${newDate.getMinutes()}`);
 
