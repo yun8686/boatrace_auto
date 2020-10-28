@@ -14,7 +14,7 @@ let open_browser = false;
 var main = async ()=> {
   console.log('実行中')
   const newDate = new Date();
-  const nowTime = Number(`${newDate.getHours()}${newDate.getMinutes()}`);
+  const nowTime = Number(`${newDate.getHours()}${('0' + newDate.getMinutes()).slice(-2)}`);
 
   type JyoMaster = {
     code: string;
@@ -106,7 +106,7 @@ var main = async ()=> {
       // console.log(JSON.stringify(betsData));
       const now_time = new Date();
 
-      const time = `${now_time.getHours()}:${now_time.getMinutes()}`
+      const time = `${now_time.getHours()}:${('0' + now_time.getMinutes()).slice(-2)}`
 
       stringify(betsData, (error, csvString) => {
         // ファイルシステムに対してファイル名を指定し、ファイルストリームを生成する.
@@ -114,11 +114,10 @@ var main = async ()=> {
         // csvStringをUTF-8で書き出す.
         writableStream.write(iconv.encode(csvString, "UTF-8"));
       });
-      await sleep(1000);
     }
   }
   // 10分おきに取得
-  setInterval(get_data, 1000 * 60 * 10)
+  setInterval(get_data, 60000 * 10)
 };
 main();
 
