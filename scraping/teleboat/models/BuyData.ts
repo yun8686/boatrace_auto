@@ -1,4 +1,5 @@
 import { logQuery } from "../../../database/database";
+import { RaceResultData } from "./RaceResultData";
 
 export type BuyStatus = "complete" | "closed";
 export type BuyData = {
@@ -10,10 +11,11 @@ export type BuyData = {
   price: number;
   isbuy?: boolean;
   buystatus?: BuyStatus;
+  isChecked?: boolean;
 };
 
 const tableColumns = {
-  buydata: ["racedate", "jyoCode", "raceNo", "kumiban", "price"],
+  buydata: ["racedate", "jyoCode", "raceNo", "kumiban", "price", "isChecked"],
 };
 
 const createTableQueries = [
@@ -27,6 +29,7 @@ const createTableQueries = [
       price int(11),
       isbuy boolean default false,
       buystatus varchar(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+      isChecked boolean default false,
       index(racedate, jyoCode, raceNo)
     ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
   `,
@@ -62,12 +65,14 @@ export async function getNextPrice(jyoCode: string) {
       " when b.kumiban = r.santankumiban then 'win' else 'lose' end as winstatus " +
       " FROM `buydata` b " +
       " left join raceresult r using (racedate, jyoCode, raceNo)" +
-      "WHERE b.jyoCode = ? order by b.racedate desc, b.raceNo desc limit 10;",
-    [jyoCode],
+      " where buystatus = 'complete'" +
+      " order by id desc limit 2;",
   );
   if (results.length <= 1 || results[0].winstatus === "win") return 100;
   else {
-    return results[0].price + (results[1].winstatus === "win" ? 0 : results[1].price);
+    const price = results[0].price + (results[1].winstatus === "win" ? 0 : results[1].price);
+    if (price > 5500) return 100;
+    else return price;
   }
 }
 export async function getNotBuyData() {
@@ -75,7 +80,22 @@ export async function getNotBuyData() {
   return results;
 }
 
-// (async () => {
-//   await insertBuyData({ racedate: new Date("2020-9-20"), jyoCode: "21", raceNo: "08", kumiban: "1-2-5", price: await getNextPrice("21") });
-//   console.log(await getNextPrice("21"));
-// })();
+export async function getNewResultData() {
+  const results = await logQuery<BuyData & RaceResultData>(`
+  select *
+  from buydata b 
+  join raceresult r using (racedate, jyoCode, raceNo)
+  where isChecked = false and buystatus = 'complete'
+  `);
+  return results;
+}
+export async function getTodayResultData() {
+  return await logQuery<{ paysum: number; payoutsum: number }>(`
+  select 
+    sum(price) paysum,
+    round(sum(case when santankumiban = kumiban then santanodds * price end)) as payoutsum
+  from buydata b
+  join raceresult r using (racedate, jyoCode, raceNo)
+  where  buystatus = 'complete' and id >= 496 and racedate = current_date;
+  `);
+}

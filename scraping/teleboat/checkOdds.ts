@@ -26,25 +26,25 @@ export async function getNextRaces(page: Page, params: Params) {
     await sleep(1000);
     await goHome(page);
     await waitAndClick(page, ".top-nav-link.deadline");
-    const moved = await page.evaluate(
+    const retObj = await page.evaluate(
       (index, currentTime, limitDiff) => {
-        console.log(index, currentTime);
         const element = document.querySelectorAll(".react-swipeable-view-container>div:nth-child(2) .deadline-list-item .jyo-panel")[
           index
         ] as HTMLElement;
         const time = parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].replace(":", ""));
         if (time - currentTime <= limitDiff) {
           element.click();
-          return true;
+          return { moved: true, time, currentTime, limitDiff };
         } else {
-          return false;
+          return { moved: false, time, currentTime, limitDiff };
         }
       },
       i,
       currentTimeNumber(),
       params.limitDiff,
     );
-    if (moved) await page.waitForNavigation({ waitUntil: "networkidle0" });
+    console.log("retObj", retObj);
+    if (retObj.moved) await page.waitForNavigation({ waitUntil: "networkidle0" });
   }
 }
 

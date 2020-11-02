@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@slack/web-api": "^5.13.0",
     "csv-stringify": "^5.5.1",
     "https": "^1.0.0",
     "mysql": "^2.18.1",

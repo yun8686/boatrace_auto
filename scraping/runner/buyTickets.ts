@@ -2,10 +2,14 @@ import { login } from "../teleboat/login";
 import cron from "node-cron";
 import { Page } from "puppeteer";
 import { buyTicket } from "../teleboat/buyTicket";
-import { getNotBuyData, updateBuyData } from "../teleboat/models/BuyData";
+import { getNotBuyData, updateBuyData, getNewResultData } from "../teleboat/models/BuyData";
+import { getJyoName } from "../teleboat/models/JyoMaster";
+import { sendToSlack } from "../../sns/slack";
 
 (async () => {
-  const page = await login();
+  const page = await login({
+    timeout: 20000,
+  });
   await runBuyTickets(page);
 
   cron.schedule("* 8-20 * * *", async () => {

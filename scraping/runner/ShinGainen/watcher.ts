@@ -1,7 +1,7 @@
 import { OddsData, ResultData } from "../../teleboat/types";
 import { RaceResultData } from "../../teleboat/models/RaceResultData";
 import { getJyoName } from "../../teleboat/models/JyoMaster";
-import { postTweet } from "../../../twitter/twitter";
+import { postTweet } from "../../../sns/twitter";
 import {
   isExistsOrderData,
   getPoorWallet,

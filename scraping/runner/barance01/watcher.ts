@@ -13,7 +13,7 @@ import {
 } from "./models";
 import { RaceResultData } from "../../teleboat/models/RaceResultData";
 import { getJyoName } from "../../teleboat/models/JyoMaster";
-import { postTweet } from "../../../twitter/twitter";
+import { postTweet } from "../../../sns/twitter";
 
 /**
  * 5番人気以下で6倍以上を買っていく
@@ -24,7 +24,10 @@ const targetJyocode = ["16", "12", "6", "24"];
 const targetRate = 4.0 as const;
 export const barance01_OddsCallback = async (oddsData: OddsData) => {
   const buyData: { kumiban: string; odds: number; price: number }[] = [];
-  if (!(await isExistsOrderData({ ...oddsData, racedate: new Date() })) && targetJyocode.indexOf(oddsData.jyoCode) >= 0) {
+  if (
+    !(await isExistsOrderData({ ...oddsData, racedate: new Date() }))
+    //&& targetJyocode.indexOf(oddsData.jyoCode) >= 0
+  ) {
     const rentan3 = oddsData.rentan3.filter((v, i) => i >= 2 && i <= 4).reverse();
     for (const odds of rentan3) {
       const wallet = await getPoorWallet(1.0);
@@ -44,7 +47,7 @@ export const barance01_OddsCallback = async (oddsData: OddsData) => {
       });
     }
   }
-
+  console.log("buyData", buyData);
   if (buyData.length > 0) {
     const message = `ローリスク・ローリターン検証中
     ${getJyoName(oddsData.jyoCode)}${Number(oddsData.raceNo)}R

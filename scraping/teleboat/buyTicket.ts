@@ -2,6 +2,8 @@ import { Page } from "puppeteer";
 import { goHome, waitNavigation, sleep } from "./common";
 import { waitAndClick } from "../puppeteer";
 import { BuyStatus } from "./models/BuyData";
+import { sendToSlack } from "../../sns/slack";
+import { getJyoName } from "./models/JyoMaster";
 
 type Parameter = {
   jyoCode: string;
@@ -54,20 +56,37 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
   await waitNavigation(page);
 
   await page.type(".input-money-block input", param.price.toString());
-  console.log("isDebug", isDebug);
+  console.log("buy isDebug", isDebug);
   const logtime = new Date().getTime();
   if (!isDebug) {
     await sleep(500);
+    await page.screenshot({
+      path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}_before.png`,
+    });
     await page.evaluate(() => {
       (document.querySelector(".btn-purchase") as HTMLInputElement).click();
     });
+    await page.screenshot({
+      path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}_after.png`,
+    });
   }
-  console.log("buy complete!", param);
+  console.log("buy complete!", logtime, param);
+
   await goHome(page);
+  await page.screenshot({
+    path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}.png`,
+  });
+
+  // no await promise
+  sendToSlack({
+    text: `購入しました\n${getJyoName(param.jyoCode)}${parseInt(param.raceNo)}R\n${param.kumiban}\n${param.price}円`,
+    channel: "ボートレース結果",
+  });
+
   return "complete";
 }
 
-export async function checkDeposit(page, minimumPrice: number) {
+export async function checkDeposit(page: Page, minimumPrice: number) {
   await goHome(page);
   try {
     await page.evaluate(() => {

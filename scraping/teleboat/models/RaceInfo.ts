@@ -6,6 +6,9 @@ export type RaceInfo = {
   raceNo: string;
   time: number;
   daynum: number;
+  // tbgradename: string;
+  // nj: string;
+  // nightflag: number;
 };
 export type BeforeInfo = {
   racedate: Date;
@@ -16,17 +19,26 @@ export type BeforeInfo = {
   weather: string;
 };
 const tableColumns = {
-  raceinfo: ["racedate", "jyoCode", "raceNo", "time"],
+  raceinfo: ["racedate", "jyoCode", "raceNo", "time", "daynum"],
   beforeinfo: ["racedate", "jyoCode", "raceNo", "wind", "windtext", "weather"],
 };
 const createTableQueries = [
+  `
+    CREATE TABLE jyoinfo (
+      racedate date NOT NULL ,
+      jyoCode varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+      tbgradename varchar(10)  CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+      nj varchar(10)  CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+      nightflag int(2),
+      primary key(racedate, jyoCode)
+    ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `,
   `
     CREATE TABLE raceinfo (
       racedate date NOT NULL ,
       jyoCode varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
       raceNo varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
       time int(4) not null,
-      daynum int(2),
       primary key(racedate, jyoCode, raceNo)
     ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
   `,
