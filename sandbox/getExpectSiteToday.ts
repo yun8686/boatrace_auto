@@ -52,7 +52,7 @@ var main = async ()=> {
 
   const get_data = async ()=>{
     // 10時以降で取得する
-    if(!(nowTime >= 1000)){
+    if(nowTime <= 1000 || nowTime < 2200){
       console.log('時間外:', nowTime)
       return false;
     }
