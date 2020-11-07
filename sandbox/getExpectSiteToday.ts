@@ -1,4 +1,4 @@
-// https://apaie.org/ranking/recommend/
+// https://apaie.org/today/
 // こちらのページの予測結果を取得
 // 実行コマンド
 // yarn ts-node sandbox/getExpectSiteToday.ts
@@ -9,7 +9,13 @@ import fs from "fs";
 import path from "path";
 import { sleep } from "../scraping/teleboat/common";
 
-(async () => {
+let open_browser = false;
+
+var main = async ()=> {
+  console.log('実行中')
+  const newDate = new Date();
+  const nowTime = Number(`${newDate.getHours()}${('0' + newDate.getMinutes()).slice(-2)}`);
+
   type JyoMaster = {
     code: string;
     name: string;
@@ -41,70 +47,79 @@ import { sleep } from "../scraping/teleboat/common";
     { code: "23", name: "唐津" },
     { code: "24", name: "大村" },
   ];
-
-  const newDate = new Date();
   const date = `${newDate.getFullYear()}-${newDate.getMonth()+1}-${newDate.getDate()}`;
+  const page = await getBrowserPage({ headless: true });
 
-  const page = await getBrowserPage({ headless: false });
-  await page.goto("https://apaie.org/today/");
-  await page.waitForSelector('.today_list');
+  const get_data = async ()=>{
+    // 10時以降で取得する
+    if(nowTime <= 1000 || nowTime < 2200){
+      console.log('時間外:', nowTime)
+      return false;
+    }
+    await page.goto("https://apaie.org/today/");
+    open_browser = true;
+    await page.waitForSelector('.today_list');
+    const list = await page.$$(".today_list.gridset");
+    for (let i=0; i < list.length; i++) {
+      await sleep(1000)
+      
+      // データを取得
+      let betsData = await page.evaluate((jyoData, date) => {
+        const resultData = [];
+        const li = document.querySelectorAll("li.grid");
 
-  const list = await page.$$(".today_list.gridset");
-  for (let i=0; i < list.length; i++) {
-    await sleep(1000)
-    
-    // データを取得
-    let betsData = await page.evaluate((jyoData, date) => {
-      const resultData = [];
-      const li = document.querySelectorAll("li.grid");
+        li.forEach(function (elem) {
+          const siteName = elem.querySelector(".today_name").textContent;
+          console.log(siteName)
 
-      li.forEach(function (elem) {
-        const siteName = elem.querySelector(".today_name").textContent;
-        console.log(siteName)
+          const race = elem.querySelector(".today_race").textContent;
+          const raceNo = race.split('R')[0].match(/\d/)[0];
+          const raceName = race.split('R')[0].split(/[0-9]{1,}/)[0].trim();
 
-        const race = elem.querySelector(".today_race").textContent;
-        const raceNo = race.split('R')[0].match(/\d/)[0];
-        const raceName = race.split('R')[0].split(/[0-9]{1,}/)[0].trim();
+          console.log('raceNo',raceNo)
+          console.log('raceName',raceName)
 
-        console.log('raceNo',raceNo)
-        console.log('raceName',raceName)
+          const bets = [];
+          const betElem = elem.querySelector(".clearfix").querySelectorAll("li");
+          console.log('betElem',betElem);
+          betElem.forEach(function (bet) {
+            console.log('bet.textContent',bet.textContent);
+            bets.push(bet.textContent.trim());
+          })
 
-        const bets = [];
-        const betElem = elem.querySelector(".clearfix").querySelectorAll("li");
-        console.log('betElem',betElem);
-        betElem.forEach(function (bet) {
-          console.log('bet.textContent',bet.textContent);
-          bets.push(bet.textContent.trim());
-        })
-
-        const codeObject = jyoData.filter(function(item, index){
-          if (item.name == raceName) return true;
+          const codeObject = jyoData.filter(function(item, index){
+            if (item.name == raceName) return true;
+          });
+          
+          resultData.push({
+            "siteName": siteName,
+            "racedate": date,
+            "jyoCode": codeObject[0].code,
+            "raceNo": raceNo,
+            "bets": bets
+          });
         });
-        
-        resultData.push({
-          "siteName": siteName,
-          "racedate": date,
-          "jyoCode": codeObject[0].code,
-          "raceNo": raceNo,
-          "bets": bets
-        });
+        // console.log(resultData);
+        return resultData;
+      },jyoData,date);
+
+      // console.log(JSON.stringify(betsData));
+      const now_time = new Date();
+
+      const time = `${now_time.getHours()}:${('0' + now_time.getMinutes()).slice(-2)}`
+
+      stringify(betsData, (error, csvString) => {
+        // ファイルシステムに対してファイル名を指定し、ファイルストリームを生成する.
+        const writableStream = fs.createWriteStream(path.join("./sandbox/betsTodayData/", `${date}_${time}.csv`));
+        // csvStringをUTF-8で書き出す.
+        writableStream.write(iconv.encode(csvString, "UTF-8"));
       });
-      console.log(resultData);
-      return resultData;
-    },jyoData,date);
-
-    console.log(JSON.stringify(betsData));
-    stringify(betsData, (error, csvString) => {
-      // ファイルシステムに対してファイル名を指定し、ファイルストリームを生成する.
-      const writableStream = fs.createWriteStream(path.join("./sandbox/betsTodayData/", `${date}.csv`));
-      // csvStringをUTF-8で書き出す.
-      writableStream.write(iconv.encode(csvString, "UTF-8"));
-    });
-    await sleep(1000)
+    }
   }
-
-  // await page.close();
-})();
+  // 10分おきに取得
+  setInterval(get_data, 60000 * 10)
+};
+main();
 
 export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions) {
   const launchOptions = {
@@ -116,12 +131,22 @@ export async function getBrowserPage(addLaunchOptions?: puppeteer.LaunchOptions)
   const page = await browser.newPage();
 
   await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    if (["stylesheet", "image", "font", "script"].indexOf(req.resourceType()) >= 0) {
-      // req.abort();
-      req.continue();
-    } else {
-      req.continue();
+  page.on("request", async (req) => {
+    try {
+        switch (await req.resourceType()) {
+          case "stylesheet":
+          case "image":
+          case "font":
+          case "script":
+            await req.abort();
+            break;
+          default:
+            await req.continue();
+            break;
+        }
+      } 
+    catch (e) {
+      console.log(e);
     }
   });
 
