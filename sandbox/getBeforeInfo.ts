@@ -26,6 +26,9 @@ import https from "https";
           })),
       );
       await insertBeforeInfo(raceInfos);
+      if (offset > results.count) {
+        break;
+      }
     }
   }
 })();

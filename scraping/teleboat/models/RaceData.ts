@@ -105,13 +105,13 @@ export const replaceRaceData = async (data: RaceOddsData[]) => {
     const rentan3Data = raceData.rentan3.map((data, i) =>
       ([raceData.racedate, raceData.jyoCode, raceData.raceNo] as (Date | string | number)[]).concat([i + 1, data.kumiban, data.odds]),
     );
-    await logQuery(`replace into rentan3 (${tableColumns.rentan3.join(",")}) values ?`, [rentan3Data]);
+    await logQuery(`replace into rentan3 (${"`" + tableColumns.rentan3.join("`,`") + "`"}) values ?`, [rentan3Data]);
 
     if (raceData.rentan2) {
       const rentan2Data = raceData.rentan2.map((data, i) =>
         ([raceData.racedate, raceData.jyoCode, raceData.raceNo] as (Date | string | number)[]).concat([i + 1, data.kumiban, data.odds]),
       );
-      await logQuery(`replace into rentan2 (${tableColumns.rentan2.join(",")}) values ?`, [rentan2Data]);
+      await logQuery(`replace into rentan2 (${"`" + tableColumns.rentan2.join("`,`") + "`"}) values ?`, [rentan2Data]);
     }
   }
 };
