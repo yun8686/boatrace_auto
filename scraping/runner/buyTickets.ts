@@ -15,6 +15,10 @@ import { sendToSlack } from "../../sns/slack";
   cron.schedule("* 8-20 * * *", async () => {
     console.log("start");
     try {
+      // 開始時間を20秒遅らせる
+      const sleep = async (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+      await sleep(20000);
+
       await runBuyTickets(page);
       console.log("end");
     } catch (e) {
@@ -24,7 +28,7 @@ import { sendToSlack } from "../../sns/slack";
   });
 
   console.log("set cron schedule");
-})();
+})().catch(() => process.exit());
 
 async function runBuyTickets(page: Page) {
   const buyData = await getNotBuyData();

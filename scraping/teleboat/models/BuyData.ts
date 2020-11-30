@@ -59,6 +59,7 @@ export async function insertBuyData(buyData: BuyData) {
 }
 
 export async function getNextPrice(jyoCode: string) {
+  const RATE = 200;
   const results = await logQuery<BuyData & { winstatus: "win" | "lose" | "waiting" }>(
     "SELECT b.price, case " +
       " when r.santankumiban is null then 'waiting' " +
@@ -68,10 +69,10 @@ export async function getNextPrice(jyoCode: string) {
       " where buystatus = 'complete'" +
       " order by id desc limit 2;",
   );
-  if (results.length <= 1 || results[0].winstatus === "win") return 100;
+  if (results.length <= 1 || results[0].winstatus === "win") return RATE;
   else {
     const price = results[0].price + (results[1].winstatus === "win" ? 0 : results[1].price);
-    if (price > 5500) return 100;
+    if (price > 11000) return RATE;
     else return price;
   }
 }
@@ -97,5 +98,15 @@ export async function getTodayResultData() {
   from buydata b
   join raceresult r using (racedate, jyoCode, raceNo)
   where  buystatus = 'complete' and id >= 496 and racedate = current_date;
+  `);
+}
+export async function getAllResultData() {
+  return await logQuery<{ paysum: number; payoutsum: number }>(`
+  select 
+    sum(price) paysum,
+    round(sum(case when santankumiban = kumiban then santanodds * price end)) as payoutsum
+  from buydata b
+  join raceresult r using (racedate, jyoCode, raceNo)
+  where  buystatus = 'complete' and id >= 496;
   `);
 }

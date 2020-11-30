@@ -6,9 +6,7 @@ import { login } from "../teleboat/login";
   try {
     console.log("ok");
   } catch (e) {
-    await page.screenshot({
-      path: `./dayrunerror.png`,
-    });
+    console.log("dayrun", e);
     process.exit();
   }
 

@@ -28,7 +28,7 @@ export async function logQuery<T>(sql: string, values?: any[]) {
           console.log("era-", err);
           reject(err);
         }
-        console.log(query);
+        //        console.log(query);
         resolve(results);
       }),
     );

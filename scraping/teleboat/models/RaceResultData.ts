@@ -7,10 +7,12 @@ export type RaceResultData = {
   raceNo: string;
   santankumiban: string;
   santanodds: number;
+  nitankumiban: string;
+  nitanodds: number;
 };
 
 const tableColumns = {
-  raceresult: ["racedate", "jyoCode", "raceNo", "santankumiban", "santanodds"],
+  raceresult: ["racedate", "jyoCode", "raceNo", "santankumiban", "santanodds", "nitankumiban", "nitanodds"],
 };
 
 const createTableQueries = [
@@ -21,6 +23,8 @@ const createTableQueries = [
     raceNo varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
     santankumiban varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
     santanodds double(7, 2),
+    nitankumiban varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci ,
+    nitanodds double(7, 2),
     primary key(racedate, jyoCode, raceNo)
   ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 `,

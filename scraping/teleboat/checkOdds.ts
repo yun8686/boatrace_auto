@@ -7,15 +7,10 @@ type Params = {
 };
 export async function getNextRaces(page: Page, params: Params) {
   await goHome(page);
-  await page.screenshot({
-    path: `./waitForSelector.png`,
-  });
   try {
     await page.waitForSelector(".react-swipeable-view-container>div:nth-child(2)");
   } catch (e) {
-    await page.screenshot({
-      path: `./waitForSelector2.png`,
-    });
+    console.log(e);
     throw e;
   }
   const raceLength = await page.evaluate(() => {
@@ -31,7 +26,9 @@ export async function getNextRaces(page: Page, params: Params) {
         const element = document.querySelectorAll(".react-swipeable-view-container>div:nth-child(2) .deadline-list-item .jyo-panel")[
           index
         ] as HTMLElement;
-        const time = parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].replace(":", ""));
+        const time =
+          parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].split(":")[0]) * 60 +
+          parseInt(element.innerText.match(/締切予定時刻(\d+:\d+)/)[1].split(":")[1]);
         if (time - currentTime <= limitDiff) {
           element.click();
           return { moved: true, time, currentTime, limitDiff };
@@ -50,5 +47,5 @@ export async function getNextRaces(page: Page, params: Params) {
 
 function currentTimeNumber() {
   const date = new Date();
-  return date.getHours() * 100 + date.getMinutes();
+  return date.getHours() * 60 + date.getMinutes();
 }

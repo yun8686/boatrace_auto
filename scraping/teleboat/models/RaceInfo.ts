@@ -7,7 +7,7 @@ export type RaceInfo = {
   time: number;
   daynum: number;
   // tbgradename: string;
-  // nj: string;
+  nj?: string;
   // nightflag: number;
 };
 export type BeforeInfo = {
@@ -18,9 +18,22 @@ export type BeforeInfo = {
   windtext: string;
   weather: string;
 };
+
+export type RacersInfo = {
+  racedate: Date;
+  jyoCode: string;
+  raceNo: string;
+  teino: number;
+  racerno: string;
+  racername: string;
+  classname: string;
+  zwinper: number;
+  jwinper: number;
+};
 const tableColumns = {
-  raceinfo: ["racedate", "jyoCode", "raceNo", "time", "daynum"],
+  raceinfo: ["racedate", "jyoCode", "raceNo", "time", "daynum", "nj"],
   beforeinfo: ["racedate", "jyoCode", "raceNo", "wind", "windtext", "weather"],
+  racersinfo: ["racedate", "jyoCode", "raceNo", "teino", "racerno", "racername", "classname", "zwinper", "jwinper"],
 };
 const createTableQueries = [
   `
@@ -53,6 +66,19 @@ const createTableQueries = [
       primary key(racedate, jyoCode, raceNo)
     ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
   `,
+  `
+  CREATE TABLE racersinfo (
+    racedate date NOT NULL ,
+    jyoCode varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+    raceNo varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+    teino integer not null,
+    racerno varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+    racername varchar(30) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+    classname varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
+    zwinper double NOT NULL,
+    jwinper double NOT NULL,
+    primary key(racedate, jyoCode, raceNo, teino)
+  ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`,
 ];
 
 export const isExistsRaceInfo = async (data: RaceInfo) => {
@@ -62,13 +88,18 @@ export const isExistsRaceInfo = async (data: RaceInfo) => {
   );
   return result[0].cnt > 0;
 };
-export const insertRaceInfo = async (data: RaceInfo[]) => {
+export const replaceRaceInfo = async (data: RaceInfo[]) => {
   const columns = tableColumns.raceinfo;
   for (const raceInfo of data) {
+    await logQuery<{ cnt: number }>("delete from raceinfo where racedate = Date(?) and jyoCode = ? and raceNo = ?;", [
+      raceInfo.racedate,
+      raceInfo.jyoCode,
+      raceInfo.raceNo,
+    ]);
     const rowData = columns.map((key) => raceInfo[key]);
-    if (!(await isExistsRaceInfo(raceInfo))) {
-      await logQuery(`insert into raceinfo (${columns.join(",")}) values ?`, [[rowData]]);
-    }
+    //    if (!(await isExistsRaceInfo(raceInfo))) {
+    await logQuery(`insert into raceinfo (${columns.join(",")}) values ?`, [[rowData]]);
+    //  }
   }
 };
 
@@ -86,5 +117,13 @@ export const insertBeforeInfo = async (data: BeforeInfo[]) => {
     if (!(await isExistsBeforeInfo(beforeInfo))) {
       await logQuery(`insert into beforeinfo (${columns.join(",")}) values ?`, [[rowData]]);
     }
+  }
+};
+
+export const insertRacersInfo = async (data: RacersInfo[]) => {
+  const columns = tableColumns.racersinfo;
+  for (const racersInfo of data) {
+    const rowData = columns.map((key) => racersInfo[key]);
+    await logQuery(`replace into racersinfo (${columns.join(",")}) values ?`, [[rowData]]);
   }
 };

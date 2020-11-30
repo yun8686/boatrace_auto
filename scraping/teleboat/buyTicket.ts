@@ -60,22 +60,13 @@ export async function buyTicket(page: Page, param: Parameter, isDebug?: boolean)
   const logtime = new Date().getTime();
   if (!isDebug) {
     await sleep(500);
-    await page.screenshot({
-      path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}_before.png`,
-    });
     await page.evaluate(() => {
       (document.querySelector(".btn-purchase") as HTMLInputElement).click();
-    });
-    await page.screenshot({
-      path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}_after.png`,
     });
   }
   console.log("buy complete!", logtime, param);
 
   await goHome(page);
-  await page.screenshot({
-    path: `./buy_complete${logtime}_${param.jyoCode}_${param.raceNo}_${param.kumiban}.png`,
-  });
 
   // no await promise
   sendToSlack({
@@ -93,9 +84,7 @@ export async function checkDeposit(page: Page, minimumPrice: number) {
       (document.querySelector(".payment") as HTMLInputElement).click();
     });
   } catch (e) {
-    await page.screenshot({
-      path: `./checkdeposit_error.png`,
-    });
+    console.log(e);
     throw e;
   }
   await waitNavigation(page);

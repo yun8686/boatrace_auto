@@ -48,10 +48,10 @@ export function setWatcher(page: Page, callbacks: Callbacks) {
         jyoCode: request.jyoCode,
         raceNo: request.raceNo,
         rentan3: (data.oddsDetailListByKachishiki[6] as { kumiban: string; minOdds: number }[])
-          .sort((a, b) => a.minOdds - b.minOdds)
+          .sort((a, b) => (a.minOdds || 9999) - (b.minOdds || 9999))
           .map<Ren>((v) => ({ kumiban: v.kumiban as string, odds: v.minOdds as number })),
         rentan2: (data.oddsDetailListByKachishiki[3] as { kumiban: string; minOdds: number }[])
-          .sort((a, b) => a.minOdds - b.minOdds)
+          .sort((a, b) => (a.minOdds || 9999) - (b.minOdds || 9999))
           .map<Ren>((v) => ({ kumiban: v.kumiban as string, odds: v.minOdds as number })),
       };
 

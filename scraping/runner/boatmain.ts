@@ -15,6 +15,7 @@ import {
   getNewResultData,
   updateBuyData,
   getTodayResultData,
+  getAllResultData,
 } from "../teleboat/models/BuyData";
 import { postTweet } from "../../sns/twitter";
 import { barance01_OddsCallback, barance01_ResultCallback } from "./barance01/watcher";
@@ -27,7 +28,9 @@ const limitDiff = 3; // 何分前オッズを集計するか
 
 (async () => {
   console.log("rerun boatmain");
-  const page = await login();
+  const page = await login({ timeout: 20000 });
+  await checkDeposit(page, 50000);
+  //  const page2 = await login();
   setWatcher(page, {
     oddsCallback: [saveOddsData, runBuyTicket, barance01_OddsCallback],
     resultCallback: [saveResultData, barance01_ResultCallback],
@@ -40,24 +43,10 @@ const limitDiff = 3; // 何分前オッズを集計するか
     await getNextRaces(page, { limitDiff });
   } catch (e) {
     console.log("error", e);
-    await page.screenshot({
-      path: `./mainerror.png`,
-    });
     process.exit();
   }
 
-  cron.schedule("30 8 * * *", async () => {
-    try {
-      console.log("moring check deposit");
-      await checkDeposit(page, 50000);
-    } catch (e) {
-      console.log("error moring check deposit", e);
-      await sleep(1000);
-      process.exit();
-    }
-  });
-
-  cron.schedule("00-59/2 8-20 * * *", async () => {
+  cron.schedule("* 8-20 * * *", async () => {
     console.log("start");
     try {
       console.log("checkResults");
@@ -87,10 +76,18 @@ const limitDiff = 3; // 何分前オッズを集計するか
       text: `本日の結果\n購入額: ${buyResult[0].paysum}\n払戻額: ${buyResult[0].payoutsum}`,
       channel: "ボートレース結果",
     });
+    const allResult = await getAllResultData();
+    await sendToSlack({
+      text: `累計結果\n購入額: ${allResult[0].paysum}\n払戻額: ${allResult[0].payoutsum}`,
+      channel: "ボートレース結果",
+    });
   });
 
   console.log("set cron schedule");
-})();
+})().catch((err) => {
+  console.error("error", err);
+  process.exit();
+});
 
 const saveOddsData = async (oddsData: OddsData) => {
   const raceData: RaceOddsData = {

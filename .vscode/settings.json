@@ -2,5 +2,16 @@
   "tslint.configFile": "tslint.json",
   "editor.codeActionsOnSave": {
     "source.fixAll.tslint": true
-  }
+  },
+  "sqltools.connections": [
+    {
+      "askForPassword": false,
+      "database": "kyotei_auto",
+      "dialect": "MySQL",
+      "name": "kyotei_auto",
+      "port": 3306,
+      "server": "localhost",
+      "username": "root"
+    }
+  ]
 }
