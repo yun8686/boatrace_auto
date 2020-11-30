@@ -52,6 +52,8 @@ const createTableQueries = [
       jyoCode varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
       raceNo varchar(2) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
       time int(4) not null,
+      daynum int(11),
+      nj varchar(20) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
       primary key(racedate, jyoCode, raceNo)
     ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
   `,
